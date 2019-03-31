@@ -39,9 +39,10 @@ void main()
     mat4 sc = mat4(1.0);
     sc[0][0] = vs_Scale[0];
     sc[1][1] = vs_Scale[1];
+    sc[2][2] = vs_Scale[2];
 
-    vec4 finalPos = sc * rotateX(vs_Pos, 3.14159 * 0.5);
-    finalPos = rotateZ(finalPos, vs_Rotate);
+    vec4 finalPos = sc * vs_Pos;
+    finalPos = rotateY(finalPos, vs_Rotate);
     finalPos.xyz = finalPos.xyz + vs_Translate;
 
     //offset = sc * (vs_Rotate * vs_Pos.xyz) + offset;

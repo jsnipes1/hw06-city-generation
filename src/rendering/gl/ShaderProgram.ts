@@ -119,6 +119,7 @@ class ShaderProgram {
   draw(d: Drawable) {
     this.use();
 
+    // Instanced shader
     if (this.id == 2) {
       if (this.attrPos != -1 && d.bindPos()) {
         gl.enableVertexAttribArray(this.attrPos);
@@ -150,7 +151,6 @@ class ShaderProgram {
         gl.vertexAttribDivisor(this.attrUV, 0); // Advance 1 index in pos VBO for each vertex
       }
 
-      // TODO: Set up attribute data for additional instanced rendering data as needed
       if (this.attrRotate != -1 && d.bindRot()) {
         gl.enableVertexAttribArray(this.attrRotate);
         gl.vertexAttribPointer(this.attrRotate, 1, gl.FLOAT, false, 0, 0);
@@ -185,6 +185,7 @@ class ShaderProgram {
       if (this.attrRotate != -1) gl.disableVertexAttribArray(this.attrRotate);
       if (this.attrScale != -1) gl.disableVertexAttribArray(this.attrScale);
     }
+    // Terrain and sky shaders
     else {
       if (this.attrPos != -1 && d.bindPos()) {
         gl.enableVertexAttribArray(this.attrPos);
