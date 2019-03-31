@@ -38,14 +38,14 @@ function drawRoadGrid() : mat4[] {
   for (let i = 0; i < 5; ++i) {
     let m : mat4 = mat4.create();
     mat4.rotate(m, m, Math.PI * 0.5, vec3.fromValues(0.0, 1.0, 0.0));
-    mat4.translate(m, m, vec3.fromValues(0.1 * i, 0.0, 0.1 * i));
+    mat4.translate(m, m, vec3.fromValues(0.1 * i, 1.2, 0.1 * i));
     transfs.push(m);
   }
 
   // Vertical
   for (let i = 0; i < 5; ++i) {
     let m : mat4 = mat4.create();
-    mat4.translate(m, m, vec3.fromValues(0.1 * i, 0.0, 0.1 * i));
+    mat4.translate(m, m, vec3.fromValues(0.1 * i, 1.2, 0.1 * i));
     transfs.push(m);
   }
 
@@ -63,6 +63,7 @@ function loadScene() {
   road.create();
 
   let roadTransfs : mat4[] = drawRoadGrid();
+  console.log(roadTransfs.length);
 
   let bOffsetArr = [];
   let bRotArr = [];
@@ -74,14 +75,13 @@ function loadScene() {
     let t : vec3 = vec3.create(); 
     let r : quat = quat.create();
     mat4.getRotation(r, curr);
-    let thetaZ = quat.getAxisAngle(vec3.fromValues(0, 0, 1), r);
+    let thetaZ = quat.getAxisAngle(vec3.fromValues(0, 1, 0), r);
     mat4.getTranslation(t, curr);
   
     bOffsetArr.push(t[0]);
     bOffsetArr.push(t[1]);
     bOffsetArr.push(0.0);
 
-    console.log(thetaZ);
     bRotArr.push(thetaZ);
 
     let s : vec3 = vec3.create();
@@ -224,8 +224,9 @@ function main() {
     processKeyPresses();
 
     renderer.render(camera, lambert, [plane,], controls.fireNationAttack, controls.timeOfDay);
+    renderer.render(camera, instanced, [road,], controls.fireNationAttack, controls.timeOfDay);
     renderer.render(camera, flat, [square,], controls.fireNationAttack, controls.timeOfDay);
-    renderer.render(camera, instanced, [road], controls.fireNationAttack, controls.timeOfDay);
+
     stats.end();
 
     // Tell the browser to call `tick` again whenever it renders a new frame
