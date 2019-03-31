@@ -86,12 +86,12 @@ void main()
   vec4 modelposition = vec4(vs_Pos.xyz, 1.0);
 
   if (fs_Col.y < 0.57) {
-    fs_Col = vec4(0.0, 0.0, 1.0, 1.0);
+    fs_Col = vec4(1.0, 1.0, 1.0, 1.0);
     // adjust height
     modelposition.y -= 0.5;
   }
   else {
-    fs_Col = vec4(0.0, 1.0, 0.0, 1.0);
+    fs_Col = vec4(204.0 / 255.0, 163.0 / 255.0, 192.0 / 255.0, 1.0);
   }
 
   modelposition = u_Model * modelposition;
