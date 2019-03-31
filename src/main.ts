@@ -37,15 +37,20 @@ function drawRoadGrid() : mat4[] {
   // Horizontal
   for (let i = 0; i < 5; ++i) {
     let m : mat4 = mat4.create();
+    mat4.scale(m, m, vec3.fromValues(1.0, 1.0, 0.2));
     mat4.rotate(m, m, Math.PI * 0.5, vec3.fromValues(0.0, 1.0, 0.0));
-    mat4.translate(m, m, vec3.fromValues(0.1 * i, 1.2, 0.1 * i));
+    mat4.translate(m, m, vec3.fromValues(i, 1.2, i));
     transfs.push(m);
   }
 
   // Vertical
   for (let i = 0; i < 5; ++i) {
     let m : mat4 = mat4.create();
-    mat4.translate(m, m, vec3.fromValues(0.1 * i, 1.2, 0.1 * i));
+    mat4.scale(m, m, vec3.fromValues(0.2, 1.0, 1.0));
+    mat4.translate(m, m, vec3.fromValues(1.2, i, i));
+    mat4.rotate(m, m, Math.PI, vec3.fromValues(0.0, 1.0, 0.0));
+    
+
     transfs.push(m);
   }
 
