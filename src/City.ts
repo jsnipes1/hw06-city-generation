@@ -19,7 +19,8 @@ export default class City {
 
         this.roadInfo = [];
         this.roadTransfs = this.drawRoadGrid();
-        // this.validityGrid = this.generateValidityGrid();
+        this.validityGrid = [];
+        this.generateValidityGrid();
     }
 
     // TODO: Help! Not sure how roads are tracked; is this the transformation of the center or end?
@@ -42,6 +43,8 @@ export default class City {
 
             // mat4.translate(m, m, vec3.fromValues(0.0, 2.5, 0.0));
             transfs.push(mat4.clone(m)); // Pushes 3 different transformations even with just this line??
+            
+            // TODO: Fix based on info
             this.roadInfo.push(new Road(vec2.fromValues(0, 0), vec2.fromValues(1, 1)));
         }
 
@@ -60,9 +63,30 @@ export default class City {
     generateValidityGrid() {
         for (let i = -50 * this.invCellSize; i <= 50 * this.invCellSize; i += this.cellSize) {
             for (let j = -50 * this.invCellSize; j <= 50 * this.invCellSize; j += this.cellSize) {
-                this.validityGrid.push()
+                let currPos : vec2 = vec2.fromValues(i * this.cellSize, j * this.cellSize);
+                let currValid : boolean = true; 
+                // For each road...               
+                for (let k = 0; k < this.roadInfo.length; ++k) {
+                    let r : Road = this.roadInfo[k];
+                    // ...find the cells it spans
+                    let s : vec2 = Road.floor(r.start);
+                    let e : vec2 = Road.floor(r.end);
+                    // If our current cell is one of those, mark it false (invalid)...
+                    if (currPos >= s || currPos <= e) {
+                        currValid = false;
+                        break;
+                    }
+                }
+                // ...else, mark it true (valid)
+                this.validityGrid.push(currValid.valueOf());
             }
         }
+    }
+
+    // Flatten a 2D index to 1D to appropriately access the validity array
+    getValidityAt(p: vec2) : boolean {
+        let i : number = p[0] + (100 * this.invCellSize + 1) * p[1];
+        return this.validityGrid[i].valueOf();
     }
 
 }
@@ -106,5 +130,9 @@ class Road {
         vec3.cross(xProd, this.outOfScreen, roadVec3);
         vec3.normalize(xProd, xProd);
         return vec2.fromValues(xProd[0], xProd[1]);
+    }
+
+    static floor(v: vec2) : vec2 {
+        return vec2.fromValues(Math.floor(v[0].valueOf()), Math.floor(v[1].valueOf()));
     }
 }
