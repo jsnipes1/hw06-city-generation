@@ -44,7 +44,7 @@ function loadScene() {
   road.create();
 
   let roadTransfs : mat4[] = city.roadTransfs;
-
+  //debugger;
   let bOffsetArr = [];
   let bRotArr = [];
   let bScaleArr = [];
@@ -69,7 +69,7 @@ function loadScene() {
     bScaleArr.push(s[0]);
     bScaleArr.push(s[1]);
     bScaleArr.push(s[2]);
-    bScaleArr.push(1.0);
+    // bScaleArr.push(1.0);
 
     bColorArr.push(0.1);
     bColorArr.push(0.1);

@@ -24,15 +24,14 @@ export default class City {
     }
 
     // TODO: Help! Not sure how roads are tracked; is this the transformation of the center or end?
+    // Is the transf being applied multiple times?
     drawRoadGrid() : mat4[] {
         let transfs : mat4[] = [];
         let m : mat4 = mat4.create();
 
-        mat4.rotate(m, m, Math.PI * 0.5, vec3.fromValues(0.0, 1.0, 0.0));
-        let start : number = 0.0;
-        let end : number = 0.0;
-        mat4.translate(m, m, vec3.fromValues(0.0, 2.5, 0.0));
-        mat4.scale(m, m, vec3.fromValues(10.0, 1.0, 0.2));
+        m = mat4.rotate(m, m, Math.PI * 0.5, vec3.fromValues(0.0, 1.0, 0.0));
+        m = mat4.translate(m, m, vec3.fromValues(0.0, 2.5, 0.0));
+        m = mat4.scale(m, m, vec3.fromValues(10.0, 1.0, 0.2));
 
         // Horizontal
         for (let i = 0; i < 3; ++i) {
@@ -89,6 +88,7 @@ export default class City {
         return this.validityGrid[i].valueOf();
     }
 
+    // TODO: Random point generation (don't do FPD unless you want to)
 }
 
 class Road {
