@@ -41,8 +41,7 @@ void main()
     sc[1][1] = vs_Scale[1];
     sc[2][2] = vs_Scale[2];
 
-    vec4 finalPos = sc * vs_Pos;
-    finalPos = rotateY(finalPos, vs_Rotate);
+    vec4 finalPos = sc * rotateY(vs_Pos, vs_Rotate);
     finalPos.xyz = finalPos.xyz + vs_Translate;
 
     //offset = sc * (vs_Rotate * vs_Pos.xyz) + offset;

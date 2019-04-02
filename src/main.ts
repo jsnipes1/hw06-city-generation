@@ -9,6 +9,7 @@ import {setGL} from './globals';
 import ShaderProgram, {Shader} from './rendering/gl/ShaderProgram';
 import Mesh from './geometry/Mesh';
 import {readTextFile} from './globals';
+import City from './City';
 
 // Define an object with application parameters and button callbacks
 // This will be referred to by dat.GUI's functions that add GUI elements.
@@ -21,6 +22,7 @@ const controls = {
 
 let square: Square;
 let plane : Plane;
+let city : City;
 let road : Mesh;
 
 let wPressed: boolean;
@@ -29,44 +31,19 @@ let sPressed: boolean;
 let dPressed: boolean;
 let planePos: vec2;
 
-let currFire: number = 0;
-let currTime: number = 0;
-
-function drawRoadGrid() : mat4[] {
-  let transfs : mat4[] = [];
-  // Horizontal
-  for (let i = 0; i < 6; ++i) {
-    let m : mat4 = mat4.create();
-    mat4.translate(m, m, vec3.fromValues(i, 2.5, 0.0));
-    mat4.rotate(m, m, Math.PI * 0.5, vec3.fromValues(0.0, 1.0, 0.0));
-    mat4.scale(m, m, vec3.fromValues(10.0, 1.0, 0.2));
-    transfs.push(m);
-  }
-
-  // Vertical
-  for (let i = 0; i < 16; ++i) {
-    let m : mat4 = mat4.create();
-    mat4.translate(m, m, vec3.fromValues(0.0, 0.2, i));
-    mat4.rotate(m, m, Math.PI * 0.5, vec3.fromValues(0.0, 1.0, 0.0));
-    mat4.scale(m, m, vec3.fromValues(0.2, 1.0, 10.0));
-    transfs.push(m);
-  }
-
-  return transfs;
-}
-
 function loadScene() {
   square = new Square(vec3.fromValues(0, 0, 0));
   square.create();
   plane = new Plane(vec3.fromValues(0,0,0), vec2.fromValues(100,100), 20);
   plane.create();
 
+  city = new City();
+
   let obj : string = readTextFile('../resources/road.obj');
   road = new Mesh(obj, vec3.fromValues(0, 0, 0));
   road.create();
 
-  let roadTransfs : mat4[] = drawRoadGrid();
-  console.log(roadTransfs.length);
+  let roadTransfs : mat4[] = city.roadTransfs;
 
   let bOffsetArr = [];
   let bRotArr = [];
