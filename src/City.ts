@@ -23,37 +23,35 @@ export default class City {
         this.generateValidityGrid();
     }
 
-    // TODO: Help! Not sure how roads are tracked; is this the transformation of the center or end?
-    // Is the transf being applied multiple times?
+    // Draw a lattice of roads using instanced rendering
     drawRoadGrid() : mat4[] {
         let transfs : mat4[] = [];
         let m : mat4 = mat4.create();
-
-        // m = mat4.rotate(m, m, Math.PI * 0.5, vec3.fromValues(0.0, 1.0, 0.0));
-        // m = mat4.translate(m, m, vec3.fromValues(0.0, 2.5, 0.0));
-        // m = mat4.scale(m, m, vec3.fromValues(10.0, 1.0, 0.2));
 
         // Horizontal
         for (let i = 0; i < 10; ++i) {
             mat4.identity(m);
             mat4.rotate(m, m, Math.PI * 0.5, vec3.fromValues(0.0, 1.0, 0.0));
-            mat4.translate(m, m, vec3.fromValues(i * 6.0 - 45.0, 0.02, 0.0));
+            mat4.translate(m, m, vec3.fromValues(i * 6.0 - 43.0, 0.02, 0.0));
             mat4.scale(m, m, vec3.fromValues(100.0, 1.0, 0.2));
 
-            // mat4.translate(m, m, vec3.fromValues(0.0, 2.5, 0.0));
-            transfs.push(mat4.clone(m)); // Pushes 3 different transformations even with just this line??
+            transfs.push(mat4.clone(m));
             
             // TODO: Fix based on info
             this.roadInfo.push(new Road(vec2.fromValues(0, 0), vec2.fromValues(1, 1)));
         }
 
         // Vertical
-        for (let i = 0; i < 10; ++i) {
+        for (let i = 0; i < 14; ++i) {
             mat4.identity(m);
             mat4.rotate(m, m, Math.PI * 0.5, vec3.fromValues(0.0, 1.0, 0.0));
-            mat4.translate(m, m, vec3.fromValues(-38.0, 0.2, i * 6.0 - 45.0));
-            mat4.scale(m, m, vec3.fromValues(0.2, 1.0, 100.0));
+            mat4.translate(m, m, vec3.fromValues(-16.0, 0.02, i * 6.0 - 45.0));
+            mat4.scale(m, m, vec3.fromValues(0.2, 1.0, 55.0));
+
             transfs.push(mat4.clone(m));
+
+            // TODO: Fix
+            this.roadInfo.push(new Road(vec2.fromValues(0,0), vec2.fromValues(1,1)));
         }
 
         return transfs;
