@@ -29,16 +29,16 @@ export default class City {
         let transfs : mat4[] = [];
         let m : mat4 = mat4.create();
 
-        m = mat4.rotate(m, m, Math.PI * 0.5, vec3.fromValues(0.0, 1.0, 0.0));
-        m = mat4.translate(m, m, vec3.fromValues(0.0, 2.5, 0.0));
-        m = mat4.scale(m, m, vec3.fromValues(10.0, 1.0, 0.2));
+        // m = mat4.rotate(m, m, Math.PI * 0.5, vec3.fromValues(0.0, 1.0, 0.0));
+        // m = mat4.translate(m, m, vec3.fromValues(0.0, 2.5, 0.0));
+        // m = mat4.scale(m, m, vec3.fromValues(10.0, 1.0, 0.2));
 
         // Horizontal
-        for (let i = 0; i < 3; ++i) {
-            // mat4.identity(m);
-            // mat4.rotate(m, m, Math.PI * 0.5, vec3.fromValues(0.0, 1.0, 0.0));
-            // mat4.translate(m, m, vec3.fromValues(i * 6.0, 2.5, 0.0));
-            // mat4.scale(m, m, vec3.fromValues(10.0, 1.0, 0.2));
+        for (let i = 0; i < 10; ++i) {
+            mat4.identity(m);
+            mat4.rotate(m, m, Math.PI * 0.5, vec3.fromValues(0.0, 1.0, 0.0));
+            mat4.translate(m, m, vec3.fromValues(i * 6.0 - 45.0, 0.02, 0.0));
+            mat4.scale(m, m, vec3.fromValues(100.0, 1.0, 0.2));
 
             // mat4.translate(m, m, vec3.fromValues(0.0, 2.5, 0.0));
             transfs.push(mat4.clone(m)); // Pushes 3 different transformations even with just this line??
@@ -48,11 +48,11 @@ export default class City {
         }
 
         // Vertical
-        for (let i = 0; i < 0; ++i) {
+        for (let i = 0; i < 10; ++i) {
             mat4.identity(m);
             mat4.rotate(m, m, Math.PI * 0.5, vec3.fromValues(0.0, 1.0, 0.0));
-            mat4.translate(m, m, vec3.fromValues(0.0, 0.2, i * 6.0));
-            mat4.scale(m, m, vec3.fromValues(10.0, 1.0, 0.2));
+            mat4.translate(m, m, vec3.fromValues(-38.0, 0.2, i * 6.0 - 45.0));
+            mat4.scale(m, m, vec3.fromValues(0.2, 1.0, 100.0));
             transfs.push(mat4.clone(m));
         }
 
