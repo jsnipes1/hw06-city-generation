@@ -73,10 +73,14 @@ void main() {
   vec3 c = vec3(0.748, 1.068, 0.318);
   vec3 d = vec3(-0.802, 1.438, 0.848);
 
-  vec3 storm = palette(pattern(fs_Pos.xyz + vec3(0.001 * u_Time + cos(0.001 * u_Time), 0.0, 0.0)) - fbm(vec3(pattern(vec3(0.001 * u_Time)))), a, b, c, d);
+  vec3 storm = palette(pattern(fs_Pos.xyz + vec3(0.0007 * u_Time + cos(0.0005 * u_Time), 0.00002 * u_Time, 0.0002 * u_Time)) - fbm(vec3(pattern(vec3(0.001 * u_Time)))), a, b, c, d);
   float lum = 0.2126 * storm.x + 0.7152 * storm.y + 0.0722 * storm.z; // Grayscale luminance
   lum = 1.0 - lum;
-  lum += 0.25;
+  lum += 0.15;
+
+  if (lum > 0.8) {
+    lum -= 0.05;
+  }
 
   out_Col = vec4(vec3(lum), 1.0);
 }
