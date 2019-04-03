@@ -126,8 +126,9 @@ export default class City {
     // Randomly select some of the generated points
     selectPoints() {
         for (let i = 0; i < this.nBuildings; ++i) {
-            let randIdx : number = Math.floor(this.allRandomPoints.length * Math.random());
-            this.selectedRandomPoints.push(this.allRandomPoints[randIdx]);
+            // Randomly select indices
+            let currIdx : number = Math.floor(this.allRandomPoints.length * Math.random());
+            this.selectedRandomPoints.push(this.allRandomPoints[currIdx]);
         }
     }
 
