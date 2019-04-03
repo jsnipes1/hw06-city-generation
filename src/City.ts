@@ -290,6 +290,7 @@ class Building {
     xzPos: vec2;
     startHeight: number;
     floorPlan: Polygon[];
+    footprint: Polygon; // Not sure if I'll need this to store the union?
 
     constructor(xzPos: vec2, startHeight: number) {
         this.xzPos = xzPos;
@@ -314,7 +315,7 @@ class Building {
                                   mostRecent.vertices[this.randomNGon(mostRecent.vertices.length)]);
         this.floorPlan.push(addedPoly);
 
-        // Union this polygon to the existing union
+        // HELP: How to union this polygon to the others?
     }
 
     // Get the most recently pushed polygon in the array
