@@ -22,7 +22,7 @@ class OpenGLRenderer {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   }
 
-  render(camera: Camera, prog: ShaderProgram, drawables: Array<Drawable>, fire: number, tod: number) {
+  render(camera: Camera, prog: ShaderProgram, drawables: Array<Drawable>, time: number) {
     let model = mat4.create();
     let viewProj = mat4.create();
     let color = vec4.fromValues(1, 0, 0, 1);
@@ -32,15 +32,17 @@ class OpenGLRenderer {
     prog.setModelMatrix(model);
     prog.setViewProjMatrix(viewProj);
 
+    prog.setTime(time);
+
     // Terrain shader
-    if (prog.id == 0) {
-      prog.setFireInfluence(fire);
-      prog.setTimeOfDay(tod);
-    }
-    // Background shader
-    else {
-      prog.setTimeOfDay(tod);
-    }
+    // if (prog.id == 0) {
+    //   // prog.setFireInfluence(time);
+    //   prog.setTime(time);
+    // }
+    // // Background shader
+    // else {
+    //   prog.setTime(time);
+    // }
 
     for (let drawable of drawables) {
       prog.draw(drawable);

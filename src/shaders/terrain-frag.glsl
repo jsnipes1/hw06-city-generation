@@ -23,7 +23,7 @@ void main()
     vec3 b = vec3(0.358, 1.09, 0.428);
     vec3 c = vec3(1.077, 0.36, 0.048);
     vec3 d = vec3(0.965, 2.265, 0.848);
-    vec4 fogCol = mix(vec4(palette(u_Daytime / 23.0, a, b, c, d), 1.0), vec4(palette((u_Daytime + 2.0) / 25.0, a, b, c, d), 1.0), fs_Pos.y);
+    vec4 fogCol = fs_Col;
 
     float t = clamp(smoothstep(40.0, 50.0, length(fs_Pos)), -1.0, 1.0); // Distance fog
     out_Col = vec4(mix(vec3(0.8 * (fs_Col + 0.2)), vec3(fogCol.xyz), t), 1.0);

@@ -315,7 +315,7 @@ class Building {
                                   mostRecent.vertices[this.randomNGon(mostRecent.vertices.length)]);
         this.floorPlan.push(addedPoly);
 
-        // HELP: How to union this polygon to the others?
+        // HELP: How to union polygons?
     }
 
     // Get the most recently pushed polygon in the array

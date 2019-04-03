@@ -39,7 +39,7 @@ float noise(vec3 p) {
   return mix(b, f, inCell.x);
 }
 
-// 5-octave FBM
+// Multi-octave FBM
 float fbm(vec3 q) {
   float acc = 0.0;
   float freqScale = 2.0;
@@ -47,7 +47,7 @@ float fbm(vec3 q) {
   float freq = 1.0;
   float amp = 1.0;
 
-  for (int i = 0; i < 5; ++i) {
+  for (int i = 0; i < 4; ++i) {
     freq *= freqScale;
     amp *= invScale;
     acc += noise(q * freq) * amp;
@@ -68,11 +68,15 @@ float pattern(in vec3 p) {
 }
 
 void main() {
-  out_Col = vec4(164.0 / 255.0, 233.0 / 255.0, 1.0, 1.0);
-  vec3 a = vec3(0.368, 0.748, 0.158);
-  vec3 b = vec3(0.358, 1.09, 0.428);
-  vec3 c = vec3(1.077, 0.36, 0.048);
-  vec3 d = vec3(0.965, 2.265, 0.848);
-  out_Col = mix(vec4(palette(u_Daytime / 23.0, a, b, c, d), 1.0), vec4(palette((u_Daytime + 2.0) / 25.0, a, b, c, d), 1.0), fs_Pos.y);
-  out_Col = vec4(palette(pattern(fs_Pos.zyx), a, b, a, c), 1.0);
+  vec3 a = vec3(1.008, 0.798, 1.918);
+  vec3 b = vec3(0.5);
+  vec3 c = vec3(0.748, 1.068, 0.318);
+  vec3 d = vec3(-0.802, 1.438, 0.848);
+
+  vec3 storm = palette(pattern(fs_Pos.xyz + vec3(0.001 * u_Time + cos(0.001 * u_Time), 0.0, 0.0)) - fbm(vec3(pattern(vec3(0.001 * u_Time)))), a, b, c, d);
+  float lum = 0.2126 * storm.x + 0.7152 * storm.y + 0.0722 * storm.z; // Grayscale luminance
+  lum = 1.0 - lum;
+  lum += 0.25;
+
+  out_Col = vec4(vec3(lum), 1.0);
 }

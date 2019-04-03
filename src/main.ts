@@ -20,6 +20,7 @@ const controls = {
   fireNationAttack: 0,
 };
 
+let time : number = 0;
 let square: Square;
 let plane : Plane;
 let city : City;
@@ -204,9 +205,11 @@ function main() {
 
     processKeyPresses();
 
-    renderer.render(camera, lambert, [plane,], controls.fireNationAttack, controls.timeOfDay);
-    renderer.render(camera, instanced, [road,], controls.fireNationAttack, controls.timeOfDay);
-    renderer.render(camera, flat, [square,], controls.fireNationAttack, controls.timeOfDay);
+    renderer.render(camera, lambert, [plane,], time);
+    renderer.render(camera, instanced, [road,], time);
+    renderer.render(camera, flat, [square,], time);
+
+    time++;
 
     stats.end();
 
