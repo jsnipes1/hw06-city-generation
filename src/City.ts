@@ -41,7 +41,6 @@ export default class City {
 
         this.selectedRandomPoints = [];
         this.selectPoints();
-        console.log(this.selectedRandomPoints.length);
     }
 
     // Draw a lattice of roads using instanced rendering
@@ -81,6 +80,7 @@ export default class City {
         return transfs;
     }
 
+    // Generate a high-resolution grid of booleans that checks for open land
     generateValidityGrid() {
         // Grid size is (100 * invCellSize + 1) x (100 * invCellSize + 1)
         for (let i = -50 * this.invCellSize; i <= 50 * this.invCellSize; ++i) {
@@ -93,27 +93,23 @@ export default class City {
                     // ...find the cells it spans
                     let s : vec2 = Road.floor(r.start);
                     let e : vec2 = Road.floor(r.end);
-                    // If our current cell is one of those, mark it false (invalid)...
+                    // If our current cell is one of those or contains water, mark it false (invalid)
                     if (currPos >= s || currPos <= e || this.isWater(currPos)) {
                         currValid = false;
                         break; // Only breaks out of k loop
                     }
                 }
-                // ...else, mark it true (valid)
+                // Else, mark it true (valid)
                 this.validityGrid.push(currValid.valueOf());
             }
         }
-        console.log(this.validityGrid.length);
     }
 
-    // Flatten a 2D index to 1D to appropriately access the validity array
+    // Get the validity value by passing in a 2D index
     getValidityAt(p: vec2) : boolean {
+        // Flatten a 2D index to 1D to appropriately access the validity array
         let i : number = p[0] + (100 * this.invCellSize + 1) * p[1];
         return this.validityGrid[i];
-    }
-
-    flatten(p: vec2) : number {
-        return p[0] + (100 * this.invCellSize + 1) * p[1];
     }
 
     // Random point generation within each valid cell
@@ -127,7 +123,7 @@ export default class City {
         }
     }
 
-    // Randomly select some of the points
+    // Randomly select some of the generated points
     selectPoints() {
         for (let i = 0; i < this.nBuildings; ++i) {
             let randIdx : number = Math.floor(this.allRandomPoints.length * Math.random());
@@ -135,7 +131,7 @@ export default class City {
         }
     }
 
-/////////////// Access terrain info on CPU ///////////////
+    /////////////// Access terrain info on CPU ///////////////
     hash2D(x: vec2) : number {
         let i : number = vec2.dot(x, vec2.fromValues(123.4031, 46.5244876));
         let j : number = Math.sin(i * 7.13) * 268573.103291;
@@ -210,7 +206,7 @@ export default class City {
     }
 }
 
-/////////////// Inner class to store roads ///////////////
+/////////////// ROAD CLASS ///////////////
 class Road {
     start: vec2;
     end: vec2;
@@ -254,5 +250,80 @@ class Road {
 
     static floor(v: vec2) : vec2 {
         return vec2.fromValues(Math.floor(v[0].valueOf()), Math.floor(v[1].valueOf()));
+    }
+}
+
+/////////////// POLYGON CLASS ///////////////
+class Polygon {
+    numSides: number;
+    vertices: vec2[];
+    height: number;
+    radPerAngle: number;
+    center: vec2;
+
+    constructor(numSides: number, height: number, center: vec2) {
+        this.numSides = numSides;
+        this.height = height;
+        this.center = center;
+
+        this.vertices = [];
+        let radius : number = 1.0 / (2.0 * Math.sin(Math.PI / numSides));
+        let startVert : vec2 = vec2.fromValues(0, 0);
+        vec2.add(startVert, center, vec2.fromValues(radius, 0));
+        this.vertices.push(startVert);
+
+        // Assume a regular polygon
+        this.radPerAngle = Math.PI * (numSides - 2) / numSides;
+
+        // Generate the remainder of the vertices, assuming unit side length
+        for (let i = 1; i < numSides; ++i) {
+            let extAngle = Math.PI - this.radPerAngle;
+            let nextPos = vec2.fromValues(0, 0);
+            vec2.add(nextPos, this.vertices[i - 1], vec2.fromValues(Math.cos(i * extAngle), Math.sin(i * extAngle)));
+            this.vertices.push(nextPos);
+        }
+    }
+}
+
+/////////////// BUILDING CLASS ///////////////
+class Building {
+    xzPos: vec2;
+    startHeight: number;
+    floorPlan: Polygon[];
+
+    constructor(xzPos: vec2, startHeight: number) {
+        this.xzPos = xzPos;
+        this.startHeight = startHeight;
+
+        // Add a random polygon for the top floor
+        this.floorPlan = [];
+        this.floorPlan.push(new Polygon(this.randomNGon(7), startHeight, xzPos));
+    }
+
+    generateFloor(nFromTop: number) {
+        // Randomize story height
+        let floorHeight : number = 4 * Math.random() + 1;
+
+        // Height from the ground of the current floor
+        let currHeight = this.startHeight - nFromTop * floorHeight;
+
+        let mostRecent : Polygon = this.getLatestPoly();
+
+        // Add a new random polygon to the floor plan, with its center at one of the previous polygon's vertices
+        let addedPoly : Polygon = new Polygon(this.randomNGon(7), currHeight, 
+                                  mostRecent.vertices[this.randomNGon(mostRecent.vertices.length)]);
+        this.floorPlan.push(addedPoly);
+
+        // Union this polygon to the existing union
+    }
+
+    // Get the most recently pushed polygon in the array
+    getLatestPoly() : Polygon {
+        return this.floorPlan[this.floorPlan.length - 1];
+    }
+
+    // Random integer from 3 to maxValue + 2 representing the number of sides of the generated polygon
+    randomNGon(maxValue: number) : number {
+        return Math.floor(Math.random() * maxValue) + 3;
     }
 }
