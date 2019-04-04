@@ -1,17 +1,18 @@
 import {vec2, vec3, mat4} from 'gl-matrix';
 
 export default class City {
-    roadInfo : Road[];
     cellSize : number; // Smaller cell size => Higher resolution
     invCellSize : number; // 1.0 / cellSize
+    roadInfo : Road[];
+    roadTransfs : mat4[];
     validityGrid : boolean[];
-    nValid : number;
     nBuildings : number; // Number of buildings to randomly place in the scene
+    roadThickness: number; // Width of roads
     allRandomPoints : vec2[];
     selectedRandomPoints : vec2[];
-    roadTransfs : mat4[];
+    buildings : Building[];
 
-    constructor(cellSize?: number, nBuildings?: number) {
+    constructor(nBuildings: number, roadThickness: number, cellSize?: number) {
         if (cellSize == undefined) {
             this.cellSize = 0.5;
             this.invCellSize = 2.0;
@@ -21,26 +22,21 @@ export default class City {
             this.invCellSize = 1.0 / cellSize.valueOf();
         }
 
-        if (nBuildings == undefined) {
-            this.nBuildings = 20;
-        }
-        else {
-            this.nBuildings = nBuildings;
-        }
-
-        this.nValid = 0;
+        this.nBuildings = nBuildings;
+        this.roadThickness = roadThickness;
 
         this.roadInfo = [];
-        this.roadTransfs = this.drawRoadGrid();
-
+        this.roadTransfs = [];
         this.validityGrid = [];
-        this.generateValidityGrid();
-
         this.allRandomPoints = [];
-        this.generateRandomPoints();
-
         this.selectedRandomPoints = [];
-        this.selectPoints();
+        this. buildings = [];
+
+        this.roadTransfs = this.drawRoadGrid();
+        this.validityGrid = this.generateValidityGrid();
+        this.allRandomPoints = this.generateRandomPoints();
+        this.selectedRandomPoints = this.selectPoints();
+        this.buildings = this.generateBuildings();
     }
 
     // Draw a lattice of roads using instanced rendering
@@ -53,14 +49,14 @@ export default class City {
             mat4.identity(m);
             mat4.rotate(m, m, Math.PI * 0.5, vec3.fromValues(0.0, 1.0, 0.0));
             mat4.translate(m, m, vec3.fromValues(i * 6.0 - 43.0, 0.02, 0.0));
-            mat4.scale(m, m, vec3.fromValues(100.0, 1.0, 0.2));
+            mat4.scale(m, m, vec3.fromValues(100.0, 1.0, this.roadThickness));
 
             transfs.push(mat4.clone(m));
             
             // "Start" and "end" here represent the thickness of the road
             // It spans the entirety of the plane along the x direction
             let p : number = i * 6.0 - 43.0;
-            this.roadInfo.push(new Road(vec2.fromValues(-50, p - 0.1), vec2.fromValues(50, p + 0.1)));
+            this.roadInfo.push(new Road(true, vec2.fromValues(-50, p - 0.1), vec2.fromValues(50, p + 0.1)));
         }
 
         // Vertical
@@ -68,20 +64,21 @@ export default class City {
             mat4.identity(m);
             mat4.rotate(m, m, Math.PI * 0.5, vec3.fromValues(0.0, 1.0, 0.0));
             mat4.translate(m, m, vec3.fromValues(-16.0, 0.02, i * 6.0 - 45.0));
-            mat4.scale(m, m, vec3.fromValues(0.2, 1.0, 55.0));
+            mat4.scale(m, m, vec3.fromValues(this.roadThickness, 1.0, 55.0));
 
             transfs.push(mat4.clone(m));
 
             // Same as above but spans entirety of plane along z direction
             let p : number = i * 6.0 - 45.0;
-            this.roadInfo.push(new Road(vec2.fromValues(p - 0.1, -50), vec2.fromValues(p + 0.1, 50)));
+            this.roadInfo.push(new Road(false, vec2.fromValues(p - 0.1, -50), vec2.fromValues(p + 0.1, 50)));
         }
 
         return transfs;
     }
 
     // Generate a high-resolution grid of booleans that checks for open land
-    generateValidityGrid() {
+    generateValidityGrid() : boolean[] {
+        let vg : boolean[] = [];
         // Grid size is (100 * invCellSize + 1) x (100 * invCellSize + 1)
         for (let i = -50 * this.invCellSize; i <= 50 * this.invCellSize; ++i) {
             for (let j = -50 * this.invCellSize; j <= 50 * this.invCellSize; ++j) {
@@ -90,19 +87,22 @@ export default class City {
                 // For each road...               
                 for (let k = 0; k < this.roadInfo.length; ++k) {
                     let r : Road = this.roadInfo[k];
-                    // ...find the cells it spans
-                    let s : vec2 = Road.floor(r.start);
-                    let e : vec2 = Road.floor(r.end);
+                    let idx : number = (r.isHorizontal) ? (1) : (0);
+
+                    // Distance of the current position to the road
+                    let dist : number = Math.abs(currPos[idx] - r.start[idx]); 
+
                     // If our current cell is one of those or contains water, mark it false (invalid)
-                    if (currPos >= s || currPos <= e || this.isWater(currPos)) {
+                    if (dist < this.roadThickness + 0.005 || this.isWater(currPos)) {
                         currValid = false;
                         break; // Only breaks out of k loop
                     }
                 }
                 // Else, mark it true (valid)
-                this.validityGrid.push(currValid.valueOf());
+                vg.push(currValid.valueOf());
             }
         }
+        return vg;
     }
 
     // Get the validity value by passing in a 2D index
@@ -113,23 +113,40 @@ export default class City {
     }
 
     // Random point generation within each valid cell
-    generateRandomPoints() {
+    generateRandomPoints() : vec2[] {
+        let pts : vec2[] = [];
         for (let i = 0; i < this.validityGrid.length; ++i) {
             if (this.validityGrid[i]) {
                 let x : number = Math.floor(i / (100 * this.invCellSize + 1));
                 let y : number = i % (100 * this.invCellSize + 1);
-                this.allRandomPoints.push(vec2.fromValues(x + this.cellSize * Math.random(), y + this.cellSize * Math.random()));
+                pts.push(vec2.fromValues(x + this.cellSize * Math.random(), y + this.cellSize * Math.random()));
             }
         }
+        return pts;
     }
 
     // Randomly select some of the generated points
-    selectPoints() {
+    selectPoints() : vec2[] {
+        let pts : vec2[] = [];
         for (let i = 0; i < this.nBuildings; ++i) {
             // Randomly select indices
             let currIdx : number = Math.floor(this.allRandomPoints.length * Math.random());
-            this.selectedRandomPoints.push(this.allRandomPoints[currIdx]);
+            pts.push(vec2.clone(this.allRandomPoints[currIdx]));
         }
+        return pts;
+    }
+
+    // Generate a building at each point
+    generateBuildings() : Building[] {
+        let bldgs : Building[] = [];
+        for (let i = 0; i < this.nBuildings; ++i) {
+            // Building height will decrease as we move farther from the origin
+            let r : vec2 = vec2.clone(this.selectedRandomPoints[i]);
+            let toOrigin : number = vec2.length(r);
+            let b : Building = new Building(r, Math.floor(Math.abs(200.0 - toOrigin) * Math.random() + 3.0));
+            bldgs.push(b);
+        }
+        return bldgs;
     }
 
     /////////////// Access terrain info on CPU ///////////////
@@ -213,8 +230,9 @@ class Road {
     end: vec2;
     roadVec: vec2; // Can calculate orientation as Math.atan2(roadVec[1], roadVec[0])
     outOfScreen: vec3 = vec3.fromValues(0, 1, 0);
+    isHorizontal: boolean;
 
-    constructor(start?: vec2, end?: vec2) {
+    constructor(isHorizontal: boolean, start?: vec2, end?: vec2) {
         if (start == undefined) {
             this.start = vec2.fromValues(0, 0);
         }
@@ -230,6 +248,8 @@ class Road {
             this.end = vec2.create();
             vec2.copy(this.end, end);
         }
+
+        this.isHorizontal = isHorizontal;
 
         this.roadVec = vec2.create();
         vec2.subtract(this.roadVec, vec2.clone(this.end), vec2.clone(this.start));
@@ -307,7 +327,7 @@ class Building {
         let floorHeight : number = 4 * Math.random() + 1;
 
         // Height from the ground of the current floor
-        let currHeight = this.startHeight - nFromTop * floorHeight;
+        let currHeight = Math.max(0.0, this.startHeight - nFromTop * floorHeight);
 
         let mostRecent : Polygon = this.getLatestPoly();
 

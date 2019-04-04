@@ -38,14 +38,13 @@ function loadScene() {
   plane = new Plane(vec3.fromValues(0,0,0), vec2.fromValues(100,100), 20);
   plane.create();
 
-  city = new City();
+  city = new City(20, 0.2);
 
   let obj : string = readTextFile('../resources/road.obj');
   road = new Mesh(obj, vec3.fromValues(0, 0, 0));
   road.create();
 
   let roadTransfs : mat4[] = city.roadTransfs;
-  //debugger;
   let bOffsetArr = [];
   let bRotArr = [];
   let bScaleArr = [];
@@ -70,7 +69,6 @@ function loadScene() {
     bScaleArr.push(s[0]);
     bScaleArr.push(s[1]);
     bScaleArr.push(s[2]);
-    // bScaleArr.push(1.0);
 
     bColorArr.push(0.1);
     bColorArr.push(0.1);

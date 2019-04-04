@@ -4,7 +4,6 @@ precision highp float;
 // The fragment shader used to render the background of the scene
 // Modify this to make your background more interesting
 
-uniform float u_Daytime;
 uniform float u_Time;
 in vec4 fs_Pos;
 out vec4 out_Col;
