@@ -6,8 +6,10 @@ precision highp float;
 
 uniform float u_Time;
 in vec4 fs_Pos;
+in vec4 fs_Col;
 out vec4 out_Col;
 
+/////// NOISE & COLORING ///////
 float hash3D(vec3 x) {
 	float i = dot(x, vec3(123.4031, 46.5244876, 91.106168));
 	return fract(sin(i * 7.13) * 268573.103291);
@@ -58,6 +60,7 @@ vec3 palette(in float t, in vec3 a, in vec3 b, in vec3 c, in vec3 d) {
     return a + b * cos(6.28318 * (c * t + d));
 }
 
+// Recursive FBM
 float pattern(in vec3 p) {
   vec3 q = vec3(fbm(p + vec3(0.0)),
                 fbm(p + vec3(5.2, 1.3, 2.8)),
@@ -65,8 +68,10 @@ float pattern(in vec3 p) {
 
   return fbm(p + 4.0 * q);
 }
+////////////////////
 
 void main() {
+  // Background coloring
   vec3 a = vec3(1.008, 0.798, 1.918);
   vec3 b = vec3(0.5);
   vec3 c = vec3(0.748, 1.068, 0.318);
