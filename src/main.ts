@@ -9,7 +9,7 @@ import {setGL} from './globals';
 import ShaderProgram, {Shader} from './rendering/gl/ShaderProgram';
 import Mesh from './geometry/Mesh';
 import {readTextFile} from './globals';
-import City from './City';
+import {City, Building} from './City';
 
 // Define an object with application parameters and button callbacks
 // This will be referred to by dat.GUI's functions that add GUI elements.
@@ -24,6 +24,7 @@ let time : number = 0;
 let square: Square;
 let plane : Plane;
 let city : City;
+let buildings : Building[];
 let road : Mesh;
 
 let wPressed: boolean;
@@ -38,8 +39,14 @@ function loadScene() {
   plane = new Plane(vec3.fromValues(0,0,0), vec2.fromValues(100,100), 20);
   plane.create();
 
+  // Create the city
   city = new City(20, 0.2);
+  buildings = city.buildings;
+  for (let i = 0; i < buildings.length; ++i) {
+    buildings[i].create();
+  }
 
+  // Render the roads using instanced rendering
   let obj : string = readTextFile('../resources/road.obj');
   road = new Mesh(obj, vec3.fromValues(0, 0, 0));
   road.create();
@@ -204,6 +211,7 @@ function main() {
     processKeyPresses();
 
     renderer.render(camera, lambert, [plane,], time);
+    renderer.render(camera, lambert, buildings, time);
     renderer.render(camera, instanced, [road,], time);
     renderer.render(camera, flat, [square,], time);
 

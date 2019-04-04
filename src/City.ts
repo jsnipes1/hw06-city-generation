@@ -1,6 +1,8 @@
 import {vec2, vec3, mat4} from 'gl-matrix';
+import Drawable from './rendering/gl/Drawable';
+import {gl} from './globals';
 
-export default class City {
+export class City {
     cellSize : number; // Smaller cell size => Higher resolution
     invCellSize : number; // 1.0 / cellSize
     roadInfo : Road[];
@@ -146,6 +148,7 @@ export default class City {
             let b : Building = new Building(r, Math.floor(Math.abs(200.0 - toOrigin) * Math.random() + 3.0));
             bldgs.push(b);
         }
+
         return bldgs;
     }
 
@@ -275,14 +278,19 @@ class Road {
 }
 
 /////////////// POLYGON CLASS ///////////////
-class Polygon {
+class Polygon extends Drawable {
     numSides: number;
     vertices: vec2[];
     height: number;
     radPerAngle: number;
     center: vec2;
+    indices: Uint32Array;
+    normals: Float32Array;
+    positions: Float32Array;
 
     constructor(numSides: number, height: number, center: vec2) {
+        super();
+
         this.numSides = numSides;
         this.height = height;
         this.center = center;
@@ -304,25 +312,79 @@ class Polygon {
             this.vertices.push(nextPos);
         }
     }
+
+    // Required create method
+    create() {
+        // Fan triangulation
+        let idxArray : number[] = [];
+        for (let i = 0; i < this.numSides; ++i) {
+            idxArray.push(0);
+            idxArray.push(i);
+            idxArray.push(i + 1);
+        }
+        this.indices = new Uint32Array(idxArray);
+
+        // All normals are positive y
+        let norArray : number[] = [];
+        for (let i = 0; i < this.numSides; ++i) {
+            norArray.push(0);
+            norArray.push(1);
+            norArray.push(0);
+            norArray.push(0);
+        }
+        this.normals = new Float32Array(norArray);
+
+        // Vertex positions are already known
+        let posArray : number[] = [];
+        for (let i = 0; i < this.vertices.length; ++i) {
+            posArray.push(this.vertices[i][0]);
+            posArray.push(this.height);
+            posArray.push(this.vertices[i][1]);
+            posArray.push(1);
+        }
+        this.positions = new Float32Array(posArray);
+
+        this.generateIdx();
+        this.generatePos();
+        this.generateNor();
+
+        this.count = this.indices.length;
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.bufIdx);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this.indices, gl.STATIC_DRAW);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.bufNor);
+        gl.bufferData(gl.ARRAY_BUFFER, this.normals, gl.STATIC_DRAW);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.bufPos);
+        gl.bufferData(gl.ARRAY_BUFFER, this.positions, gl.STATIC_DRAW);
+
+        console.log(`Created polygon`);
+    }
 }
 
 /////////////// BUILDING CLASS ///////////////
-class Building {
+export class Building extends Drawable {
     xzPos: vec2;
     startHeight: number;
     floorPlan: Polygon[];
-    footprint: Polygon; // Not sure if I'll need this to store the union?
 
     constructor(xzPos: vec2, startHeight: number) {
+        super();
         this.xzPos = xzPos;
         this.startHeight = startHeight;
 
         // Add a random polygon for the top floor
         this.floorPlan = [];
         this.floorPlan.push(new Polygon(this.randomNGon(7), startHeight, xzPos));
+
+        // Generate all the rest of the floors
+        let fromTop : number = 1;
+        while (this.generateFloor(fromTop) > 0) {
+            fromTop++;
+        }
     }
 
-    generateFloor(nFromTop: number) {
+    generateFloor(nFromTop: number) : number {
         // Randomize story height
         let floorHeight : number = 4 * Math.random() + 1;
 
@@ -333,10 +395,10 @@ class Building {
 
         // Add a new random polygon to the floor plan, with its center at one of the previous polygon's vertices
         let addedPoly : Polygon = new Polygon(this.randomNGon(7), currHeight, 
-                                  mostRecent.vertices[this.randomNGon(mostRecent.vertices.length)]);
+                                  mostRecent.vertices[Math.floor(mostRecent.vertices.length * Math.random())]);
         this.floorPlan.push(addedPoly);
 
-        // HELP: How to union polygons?
+        return currHeight;
     }
 
     // Get the most recently pushed polygon in the array
@@ -348,4 +410,13 @@ class Building {
     randomNGon(maxValue: number) : number {
         return Math.floor(Math.random() * maxValue) + 3;
     }
+
+    create() {
+        // Call create on each polygon that was created
+        for (let i = 0; i < this.floorPlan.length; ++i) {
+            this.floorPlan[i].create();
+        }
+        console.log('Created building');
+    }
+
 }
