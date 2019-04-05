@@ -48,7 +48,7 @@ function loadScene() {
   }
 
   // Render the roads using instanced rendering
-  let obj : string = readTextFile('../resources/road.obj');
+  let obj : string = readTextFile('https://raw.githubusercontent.com/jsnipes1/hw06-city-generation/master/resources/road.obj');
   road = new Mesh(obj, vec3.fromValues(0, 0, 0));
   road.create();
 
