@@ -16,8 +16,7 @@ import {City, Building} from './City';
 const controls = {
   tesselations: 5,
   'Load Scene': loadScene, // A function pointer, essentially
-  timeOfDay: 0,
-  fireNationAttack: 0,
+  numBuildings: 20,
 };
 
 let time : number = 0;
@@ -26,6 +25,8 @@ let plane : Plane;
 let city : City;
 let buildings : Building[];
 let road : Mesh;
+
+let currBuildings = 20;
 
 let wPressed: boolean;
 let aPressed: boolean;
@@ -40,7 +41,7 @@ function loadScene() {
   plane.create();
 
   // Create the city
-  city = new City(20, 0.2);
+  city = new City(currBuildings, 0.2);
   buildings = city.buildings;
   for (let i = 0; i < buildings.length; ++i) {
     buildings[i].create();
@@ -144,8 +145,7 @@ function main() {
 
   // Add controls to the gui
   const gui = new DAT.GUI();
-  gui.add(controls, 'timeOfDay', 0, 23).step(1);
-  gui.add(controls, 'fireNationAttack', 0, 100).step(1);
+  gui.add(controls, 'numBuildings', 0, 40).step(1);
 
   // get canvas and webgl context
   const canvas = <HTMLCanvasElement> document.getElementById('canvas');
@@ -181,6 +181,11 @@ function main() {
     new Shader(gl.FRAGMENT_SHADER, require('./shaders/instanced-frag.glsl')),
   ], 2);
 
+  const urban = new ShaderProgram([
+    new Shader(gl.VERTEX_SHADER, require('./shaders/urban-vert.glsl')),
+    new Shader(gl.FRAGMENT_SHADER, require('./shaders/urban-frag.glsl')),
+  ], 3);
+
   function processKeyPresses() {
     let velocity: vec2 = vec2.fromValues(0,0);
     if(wPressed) {
@@ -208,12 +213,17 @@ function main() {
     gl.viewport(0, 0, window.innerWidth, window.innerHeight);
     renderer.clear();
 
+    if (currBuildings != controls.numBuildings) {
+      currBuildings = controls.numBuildings;
+      loadScene();
+    }
+
     processKeyPresses();
 
     renderer.render(camera, lambert, [plane,], time);
-    renderer.render(camera, lambert, buildings, time);
     renderer.render(camera, instanced, [road,], time);
     renderer.render(camera, flat, [square,], time);
+    renderer.render(camera, urban, buildings, time);
 
     time++;
 

@@ -119,8 +119,8 @@ export class City {
         let pts : vec2[] = [];
         for (let i = 0; i < this.validityGrid.length; ++i) {
             if (this.validityGrid[i]) {
-                let x : number = Math.floor(i / (100 * this.invCellSize + 1));
-                let y : number = i % (100 * this.invCellSize + 1);
+                let x : number = Math.floor(i / (100 * this.invCellSize + 1)) * this.cellSize - 50;
+                let y : number = (i % (100 * this.invCellSize + 1)) * this.cellSize - 50;
                 pts.push(vec2.fromValues(x + this.cellSize * Math.random(), y + this.cellSize * Math.random()));
             }
         }
@@ -148,7 +148,6 @@ export class City {
             let b : Building = new Building(r, Math.floor(Math.abs(200.0 - toOrigin) * Math.random() + 3.0));
             bldgs.push(b);
         }
-
         return bldgs;
     }
 
@@ -296,52 +295,131 @@ class Polygon extends Drawable {
         this.center = center;
 
         this.vertices = [];
-        let radius : number = 1.0 / (2.0 * Math.sin(Math.PI / numSides));
+        let radius : number = 1.0;
         let startVert : vec2 = vec2.fromValues(0, 0);
         vec2.add(startVert, center, vec2.fromValues(radius, 0));
         this.vertices.push(startVert);
 
-        // Assume a regular polygon
-        this.radPerAngle = Math.PI * (numSides - 2) / numSides;
-
         // Generate the remainder of the vertices, assuming unit side length
+        let angle = 2.0 * Math.PI / numSides;
         for (let i = 1; i < numSides; ++i) {
-            let extAngle = Math.PI - this.radPerAngle;
             let nextPos = vec2.fromValues(0, 0);
-            vec2.add(nextPos, this.vertices[i - 1], vec2.fromValues(Math.cos(i * extAngle), Math.sin(i * extAngle)));
+            vec2.add(nextPos, this.vertices[i - 1], vec2.fromValues(Math.cos(i * angle), Math.sin(i * angle)));
             this.vertices.push(nextPos);
         }
     }
 
     // Required create method
     create() {
-        // Fan triangulation
         let idxArray : number[] = [];
-        for (let i = 0; i < this.numSides; ++i) {
-            idxArray.push(0);
-            idxArray.push(i);
-            idxArray.push(i + 1);
-        }
-        this.indices = new Uint32Array(idxArray);
-
-        // All normals are positive y
         let norArray : number[] = [];
+        let posArray : number[] = [];
+
+        // Fan triangulation of top face
+        for (let i = 0; i < this.numSides - 2; ++i) {
+            idxArray.push(0);
+            idxArray.push(i + 1);
+            idxArray.push(i + 2);
+        }
+        // Bottom face
+        for (let i = 0; i < this.numSides - 2; ++i) {
+            idxArray.push(this.numSides);
+            idxArray.push(this.numSides + i + 1);
+            idxArray.push(this.numSides + i + 2);
+        }
+        // Create side quads
+        for (let i = 0; i < this.numSides; ++i) {
+            idxArray.push(i);
+            idxArray.push((i + 1) % this.numSides);
+            idxArray.push((i + 1) % this.numSides + this.numSides);
+
+            idxArray.push(i);
+            idxArray.push((i + 1) % this.numSides + this.numSides);
+            idxArray.push(i + this.numSides);
+        }
+
+        // Order of face creation is top, bottom, sides
         for (let i = 0; i < this.numSides; ++i) {
             norArray.push(0);
             norArray.push(1);
             norArray.push(0);
             norArray.push(0);
         }
-        this.normals = new Float32Array(norArray);
+        for (let i = 0; i < this.numSides; ++i) {
+            norArray.push(0);
+            norArray.push(-1);
+            norArray.push(0);
+            norArray.push(0);
+        }
+        for (let i = 0; i < this.numSides; ++i) {
+            let currAngle : number = (2 * Math.PI / this.numSides) * (i + 0.5);
+            norArray.push(Math.cos(currAngle));
+            norArray.push(0);
+            norArray.push(Math.sin(currAngle));
+            norArray.push(0);
+        }
+        for (let i = 0; i < this.numSides; ++i) {
+            let currAngle : number = (2 * Math.PI / this.numSides) * (i + 0.5);
+            norArray.push(Math.cos(currAngle));
+            norArray.push(0);
+            norArray.push(Math.sin(currAngle));
+            norArray.push(0);
+        }
+        for (let i = 0; i < this.numSides; ++i) {
+            let currAngle : number = (2 * Math.PI / this.numSides) * (i - 0.5);
+            norArray.push(Math.cos(currAngle));
+            norArray.push(0);
+            norArray.push(Math.sin(currAngle));
+            norArray.push(0);
+        }
+        for (let i = 0; i < this.numSides; ++i) {
+            let currAngle : number = (2 * Math.PI / this.numSides) * (i - 0.5);
+            norArray.push(Math.cos(currAngle));
+            norArray.push(0);
+            norArray.push(Math.sin(currAngle));
+            norArray.push(0);
+        }
 
         // Vertex positions are already known
-        let posArray : number[] = [];
         for (let i = 0; i < this.vertices.length; ++i) {
             posArray.push(this.vertices[i][0]);
             posArray.push(this.height);
             posArray.push(this.vertices[i][1]);
             posArray.push(1);
         }
+        for (let i = 0; i < this.vertices.length; ++i) {
+            posArray.push(this.vertices[i][0]);
+            posArray.push(Math.max(0.0, this.height - 10));
+            posArray.push(this.vertices[i][1]);
+            posArray.push(1);
+        }
+        for (let i = 0; i < this.vertices.length; ++i) {
+            posArray.push(this.vertices[i][0]);
+            posArray.push(this.height);
+            posArray.push(this.vertices[i][1]);
+            posArray.push(1);
+        }
+        for (let i = 0; i < this.vertices.length; ++i) {
+            posArray.push(this.vertices[i][0]);
+            posArray.push(Math.max(0.0, this.height - 10));
+            posArray.push(this.vertices[i][1]);
+            posArray.push(1);
+        }
+        for (let i = 0; i < this.vertices.length; ++i) {
+            posArray.push(this.vertices[i][0]);
+            posArray.push(this.height);
+            posArray.push(this.vertices[i][1]);
+            posArray.push(1);
+        }
+        for (let i = 0; i < this.vertices.length; ++i) {
+            posArray.push(this.vertices[i][0]);
+            posArray.push(Math.max(0.0, this.height - 10));
+            posArray.push(this.vertices[i][1]);
+            posArray.push(1);
+        }
+
+        this.indices = new Uint32Array(idxArray);
+        this.normals = new Float32Array(norArray);
         this.positions = new Float32Array(posArray);
 
         this.generateIdx();
@@ -385,8 +463,8 @@ export class Building extends Drawable {
     }
 
     generateFloor(nFromTop: number) : number {
-        // Randomize story height
-        let floorHeight : number = 4 * Math.random() + 1;
+        // Each floor will be 4 units high
+        let floorHeight : number = 10;
 
         // Height from the ground of the current floor
         let currHeight = Math.max(0.0, this.startHeight - nFromTop * floorHeight);
@@ -416,6 +494,7 @@ export class Building extends Drawable {
         for (let i = 0; i < this.floorPlan.length; ++i) {
             this.floorPlan[i].create();
         }
+
         console.log('Created building');
     }
 
