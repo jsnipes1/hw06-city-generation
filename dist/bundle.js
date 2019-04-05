@@ -6092,7 +6092,7 @@ function loadScene() {
         buildings[i].create();
     }
     // Render the roads using instanced rendering
-    let obj = Object(__WEBPACK_IMPORTED_MODULE_7__globals__["b" /* readTextFile */])('../resources/road.obj');
+    let obj = Object(__WEBPACK_IMPORTED_MODULE_7__globals__["b" /* readTextFile */])('https://raw.githubusercontent.com/jsnipes1/hw06-city-generation/master/resources/road.obj');
     road = new __WEBPACK_IMPORTED_MODULE_9__geometry_Mesh__["a" /* default */](obj, __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(0, 0, 0));
     road.create();
     let roadTransfs = city.roadTransfs;
