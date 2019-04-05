@@ -332,7 +332,8 @@ class Polygon extends Drawable {
             idxArray.push(i);
             idxArray.push((i + 1) % this.numSides);
             idxArray.push((i + 1) % this.numSides + this.numSides);
-
+        }
+        for (let i = 0; i < this.numSides; ++i) {
             idxArray.push(i);
             idxArray.push((i + 1) % this.numSides + this.numSides);
             idxArray.push(i + this.numSides);
